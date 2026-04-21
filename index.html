@@ -1,1 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Realistic Top-Down Racer</title>
+    <style>
+        body { margin: 0; background: #333; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { background: #555; border: 5px solid #222; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
 
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = 800;
+canvas.height = 600;
+
+const car = {
+    x: 400,
+    y: 300,
+    width: 30,
+    height: 50,
+    angle: 0,
+    speed: 0,
+    acceleration: 0.2,
+    deceleration: 0.1,
+    maxSpeed: 7,
+    friction: 0.96,
+    steer: 0.05
+};
+
+const keys = {};
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
+
+function update() {
+    // Gas and Brake
+    if (keys["ArrowUp"]) car.speed += car.acceleration;
+    if (keys["ArrowDown"]) car.speed -= car.deceleration;
+
+    // Friction & Caps
+    car.speed *= car.friction;
+    if (Math.abs(car.speed) > car.maxSpeed) car.speed = car.maxSpeed * Math.sign(car.speed);
+    if (Math.abs(car.speed) < 0.1) car.speed = 0;
+
+    // Steering (Only steer if moving)
+    if (car.speed !== 0) {
+        const direction = car.speed > 0 ? 1 : -1;
+        if (keys["ArrowLeft"]) car.angle -= car.steer * direction * (Math.abs(car.speed) / car.maxSpeed);
+        if (keys["ArrowRight"]) car.angle += car.steer * direction * (Math.abs(car.speed) / car.maxSpeed);
+    }
+
+    // Position Update
+    car.x += Math.cos(car.angle) * car.speed;
+    car.y += Math.sin(car.angle) * car.speed;
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.translate(car.x, car.y);
+    ctx.rotate(car.angle);
+    
+    // Draw Car Body
+    ctx.fillStyle = "red";
+    ctx.fillRect(-car.height / 2, -car.width / 2, car.height, car.width);
+    
+    // Draw "Front" Indicator
+    ctx.fillStyle = "black";
+    ctx.fillRect(car.height / 4, -car.width / 2, 5, car.width);
+    
+    ctx.restore();
+}
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
