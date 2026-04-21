@@ -27,33 +27,50 @@ const car = {
     deceleration: 0.1,
     maxSpeed: 7,
     friction: 0.96,
-    steer: 0.05
+    steer: 0.06,
+    handbrake: 0.85 // Extra friction when space is pressed
 };
 
 const keys = {};
-window.addEventListener("keydown", e => keys[e.key] = true);
-window.addEventListener("keyup", e => keys[e.key] = false);
+window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
 function update() {
-    // Gas and Brake
-    if (keys["ArrowUp"]) car.speed += car.acceleration;
-    if (keys["ArrowDown"]) car.speed -= car.deceleration;
+    // Gas and Brake (WASD)
+    if (keys["w"]) car.speed += car.acceleration;
+    if (keys["s"]) car.speed -= car.deceleration;
 
-    // Friction & Caps
+    // Handbrake (Space)
+    if (keys[" "]) {
+        car.speed *= car.handbrake;
+    }
+
+    // Applying Friction & Speed Caps
     car.speed *= car.friction;
     if (Math.abs(car.speed) > car.maxSpeed) car.speed = car.maxSpeed * Math.sign(car.speed);
     if (Math.abs(car.speed) < 0.1) car.speed = 0;
 
-    // Steering (Only steer if moving)
+    // Steering logic (A and D)
     if (car.speed !== 0) {
+        // This ensures steering direction reverses when backing up
         const direction = car.speed > 0 ? 1 : -1;
-        if (keys["ArrowLeft"]) car.angle -= car.steer * direction * (Math.abs(car.speed) / car.maxSpeed);
-        if (keys["ArrowRight"]) car.angle += car.steer * direction * (Math.abs(car.speed) / car.maxSpeed);
+        
+        // Steering is more sensitive at medium speeds, harder at high speeds
+        const steeringFactor = Math.abs(car.speed) / car.maxSpeed;
+
+        if (keys["a"]) car.angle -= car.steer * direction * steeringFactor;
+        if (keys["d"]) car.angle += car.steer * direction * steeringFactor;
     }
 
-    // Position Update
+    // Position Update based on Angle
     car.x += Math.cos(car.angle) * car.speed;
     car.y += Math.sin(car.angle) * car.speed;
+
+    // Screen Wrap (Keep car on screen)
+    if (car.x > canvas.width) car.x = 0;
+    if (car.x < 0) car.x = canvas.width;
+    if (car.y > canvas.height) car.y = 0;
+    if (car.y < 0) car.y = canvas.height;
 }
 
 function draw() {
@@ -63,18 +80,28 @@ function draw() {
     ctx.translate(car.x, car.y);
     ctx.rotate(car.angle);
     
-    // Draw Car Body
-    ctx.fillStyle = "red";
+    // Car Shadow
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.fillRect(-car.height / 2 + 5, -car.width / 2 + 5, car.height, car.width);
+
+    // Car Body
+    ctx.fillStyle = "#e74c3c"; // Racing Red
     ctx.fillRect(-car.height / 2, -car.width / 2, car.height, car.width);
     
-    // Draw "Front" Indicator
-    ctx.fillStyle = "black";
-    ctx.fillRect(car.height / 4, -car.width / 2, 5, car.width);
+    // Front Windshield (to tell which way is forward)
+    ctx.fillStyle = "#34495e";
+    ctx.fillRect(car.height / 8, -car.width / 2 + 5, car.height / 4, car.width - 10);
     
     ctx.restore();
 }
 
 function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+loop();
     update();
     draw();
     requestAnimationFrame(loop);
