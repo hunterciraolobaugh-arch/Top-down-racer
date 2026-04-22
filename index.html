@@ -1,11 +1,54 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Realistic Top-Down Racer</title>
+    <meta charset="UTF-8">
+    <title>Workspace Assignment</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+
+    <div id="authScreen" class="overlay">
+        <div class="modal-content">
+            <h1>Driver Login</h1>
+            <input type="email" id="emailInput" placeholder="Enter Email" autocomplete="off">
+            <button class="main-btn" onclick="login()">Login / Sign Up</button>
+            <p style="font-size: 10px; color: #555; margin-top: 20px;">Use T to panic (only while driving)</p>
+        </div>
+    </div>
+
+    <div id="saveScreen" class="overlay" style="display:none;">
+        <div class="modal-content" style="width: 450px;">
+            <h1>Select Save Slot</h1>
+            <p id="userWelcome"></p>
+            <div id="slotContainer"></div>
+            <button class="close-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div id="stealthScreen">
+        <div class="iready-content">
+            <div class="iready-logo">i-Ready</div>
+            <div class="loader"></div>
+            <p>Loading your lesson... please wait.</p>
+        </div>
+    </div>
+
+    <div id="bustedScreen" class="modal">
+        <div class="modal-content">
+            <h1 style="color:#e74c3c">BUSTED!</h1>
+            <button class="main-btn" onclick="resetGame()">Pay Fine & Restart</button>
+        </div>
+    </div>
+
+    <div id="hud" style="display:none;">Cash: $<span id="hudCash">0</span></div>
+
+    <div id="uiContainer" style="display:none;">
+        <button id="dealershipBtn" class="main-btn">🏎️ DEALERSHIP</button>
+        <button id="shopBtn" class="main-btn">🔧 UPGRADES</button>
+        <button class="main-btn" style="background:#95a5a6" onclick="location.reload()">💾 MENU</button>
+    </div>
+
+    <canvas id="gameCanvas" style="display:none;"></canvas>
 
     <script src="script.js"></script>
 </body>
